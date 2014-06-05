@@ -49,6 +49,7 @@ Authorization.scope :principals do
   condition :anonymous_in_project, Authorization::Condition::AnonymousInProject
 
   condition :enabled_modules_of_project, Authorization::Condition::EnabledModulesOfProject
+  condition :always_false_unless_permission, Authorization::Condition::AlwaysFalse, if: ->(permission: nil, **ignored) { permission.nil? }
   condition :project_active, Authorization::Condition::ProjectActive
   condition :project_public, Authorization::Condition::PublicProject, if: ->(project: nil, **ignored) { project.present? }
   condition :projects_members, Authorization::Condition::ProjectsMembers
@@ -68,6 +69,12 @@ Authorization.scope :principals do
   condition :fallback_role, fallback_project_condition.and(active_non_member_in_project.or(anonymous_in_project))
   condition :member_or_fallback, member_in_project.or(fallback_role)
 
+  # this is a hacky optimisation that will prevent the enabled_modules table
+  # from being loaded if no permission is queried for.  otherwise a lot more
+  # rows will be returned which drastically increases the time required for
+  # querying.
+  condition :enabled_modules_or_nothing, enabled_modules_of_project.and(always_false_unless_permission)
+
   condition :permission_active, permission_module_active
   condition :permitted_in_project, permission_active.and(role_permitted)
   condition :permitted_role_for_project, member_or_fallback.and(permitted_in_project)
@@ -83,7 +90,7 @@ Authorization.scope :principals do
             .left_join(projects)
             .on(member_or_public_project)
             .left_join(enabled_modules)
-            .on(enabled_modules_of_project)
+            .on(enabled_modules_or_nothing)
             .left_join(member_roles)
             .on(member_roles_id_equal)
             .left_join(roles)

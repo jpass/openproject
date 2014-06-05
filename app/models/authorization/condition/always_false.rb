@@ -28,12 +28,9 @@
 #++
 
 module Authorization::Condition
-  class EnabledModulesOfProject < Base
-    table EnabledModule
-    table Project
-
-    def arel_statement(permission: nil, **ignored)
-      enabled_modules[:project_id].eq(projects[:id])
+  class AlwaysFalse < Base
+    def arel_statement(**ignored)
+      Arel::Nodes::Equality.new(1, 0)
     end
   end
 end
