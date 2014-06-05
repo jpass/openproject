@@ -120,8 +120,8 @@ module User::Allowed
         perm = Redmine::AccessControl.permission(a)
 
         perm.present? &&
-          !perm.project_module ||
-          project.enabled_module_names.include?(perm.project_module.to_s)
+          (!perm.project_module ||
+           project.enabled_module_names.include?(perm.project_module.to_s))
       end
     end
   end
