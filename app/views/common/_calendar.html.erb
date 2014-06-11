@@ -59,8 +59,18 @@ while day <= calendar.enddt %>
     </div>
   <% else %>
     <div>
+      <% if day == i.start_date and day == i.due_date %>
+          <% date_img = image_tag("bullet_diamond.png", :title => l(:text_tip_version_begin_end_day), :alt => l(:text_tip_version_begin_end_day),
+                                  :class => "imgtag-icon") %>
+      <% elsif day == i.start_date %>
+          <% date_img = image_tag("bullet_go.png", :title => l(:text_tip_version_begin_day), :alt => l(:text_tip_version_begin_day),
+                                  :class => "imgtag-icon") %>
+      <% elsif day == i.due_date %>
+          <% date_img = image_tag("bullet_end.png", :title => l(:text_tip_version_end_day), :alt => l(:text_tip_version_end_day),
+                                  :class => "imgtag-icon") %>
+      <% end %>
       <%= h("#{i.project} -") unless @project && @project == i.project %>
-      <%= link_to_version i, {}, {:before_text => icon_wrapper('icon-context icon-version', Version.model_name.human) }%>
+      <%= link_to_version i, {}, {:before_text => date_img + icon_wrapper('icon-context icon-version', Version.model_name.human) }%>
     </div>
   <% end %>
 <% end %>
